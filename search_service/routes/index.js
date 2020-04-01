@@ -13,6 +13,13 @@ const uuidv1 = require("uuid/v1");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 
+router.get("/", function(req, res, next) {
+  res.send({
+    code: "200",
+    message: "Search service"
+  });
+});
+
 router.post("/api/search", function(req, res, next) {
   var search_text = req.body.search_text;
   var s_id = req.body.session_id;

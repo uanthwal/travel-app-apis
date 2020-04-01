@@ -13,6 +13,13 @@ const uuidv1 = require("uuid/v1");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 
+router.get("/", function(req, res, next) {
+  res.send({
+    code: "200",
+    message: "User service"
+  });
+});
+
 router.post("/register", function(req, res, next) {
   console.log(req.body);
   var userInfo = req.body;

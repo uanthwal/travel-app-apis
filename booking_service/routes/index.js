@@ -82,6 +82,13 @@ function get_company(mode) {
   }
 }
 
+router.get("/", function(req, res, next) {
+  res.send({
+    code: "200",
+    message: "Booking service"
+  });
+});
+
 router.post("/api/modes", function(req, res, next) {
   var source = req.body.src;
   var destination = req.body.dest;
