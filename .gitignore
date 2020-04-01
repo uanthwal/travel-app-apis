@@ -1,0 +1,4 @@
+.DS_Store
+booking_service/node_modules
+search_service/node_modules
+user_service/node_modules
