@@ -13,7 +13,6 @@ const uuidv1 = require("uuid/v1");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 
-
 function generate_mode_number() {
   const upperCaseAlp = [
     "A",
@@ -239,60 +238,60 @@ router.post("/api/get-booking-by-id", function(req, res, next) {
   });
 });
 
-router.post("/api/ticket_generation", function(req, res, next) {
-  console.log("Reached");
+router.post("/api/generate-ticket", function(req, res, next) {
+  var ObjectId = require("mongodb").ObjectId;
+  let booking_id = new ObjectId(req.body.booking_id);
+  Booking_History.findOne({ _id: booking_id }, function(err, data) {
+    if (err) throw err;
+    console.log(data);
+    var booking_id = data._id;
+    var mode = data.mode;
+    var username = data.username;
+    var src = data.src;
+    var dest = data.dest;
+    var date_of_travel = data.date_of_travel;
+    var mode_fare = data.mode_fare;
+    var mode_company = data.mode_company;
+    var mode_number = data.mode_number;
+    var doc = new PDFDocument();
+    doc.pipe(fs.createWriteStream(data._id + ".pdf"));
+    doc
+      .fontSize(14)
+      .text("Your Booking Is Confirmed", 200, 90);
+      doc
+      .text("Your Booking Reference Number is: " + booking_id, 130, 120).font('Helvetica-Bold');
 
-  var ref = "123456789";
-  var mode = "Flight";
-  var p_name = "Piyush";
-  var src = "NB";
-  var dest = "KTCHN";
-  var j_date = "March 31, 2020";
-  var fare = "$180.0";
-  var flight_name = "West Jet";
-  var flight_number = "(ROX - 218)";
 
-  var doc = new PDFDocument();
-  doc.pipe(fs.createWriteStream("ticket.pdf"));
-  doc
-    .fontSize(14)
-    .text("Your Booking Is Confirmed", 200, 90)
-    .text("Your booking reference number is: " + ref, 130, 120);
+    doc
+      .fontSize(9)
+      .font('Helvetica-Bold')
+      .text("Passenger Name: " + username, 220, 240)
+      .text("Source: " + src, 220, 260)
+      .text("Destination: " + dest, 220, 280)
+      .text("Journey Date: " + date_of_travel, 220, 300)
+      .text("Mode: " + mode, 220, 320)
+      .text("Fare: $" + mode_fare, 220, 340);
 
-  doc
-    .fontSize(9)
-    .text("Passenger Name: " + p_name, 220, 240)
-    .text("Source: " + src, 220, 260)
-    .text("Destination: " + dest, 220, 280)
-    .text("Journey Date: " + j_date, 220, 300)
-    .text("Mode: " + mode, 220, 320)
-    .text("Fare: " + fare, 220, 340);
+    doc
+      .fontSize(9)
+      .font('Helvetica-Bold')
+      .text(mode_company, 155, 295)
+      .text(mode_number, 150, 305);
 
-  doc
-    .fontSize(9)
-    .text(flight_name, 155, 295)
-    .text(flight_number, 150, 305);
-
-  doc.image(
-    "../images/confirmed.png",
-    210,
-    150,
-    { width: 170, height: 70 }
-    // fit: [100, 100],
-  );
-
-  if (mode == "Flight") {
-    doc.image("../images/flight.png", 150, 240, { width: 50, height: 50 });
-    // fit: [10, 10]
-  } else if (mode == "Bus") {
-    doc.image("../images/bus.png", 150, 240, { width: 50, height: 50 });
-    // fit: [100, 100]
-  } else {
-    console.log("No valid mode!");
-  }
-
-  doc.end();
-  res.send("OK");
+    doc.image("images/confirmed.png", 210, 150, { width: 170, height: 70 });
+    if (mode == "Flight" || mode == "flight") {
+      doc.image("images/flight.png", 150, 240, { width: 50, height: 50 });
+    } else if (mode == "Bus" || mode == "bus") {
+      doc.image("images/bus.png", 150, 240, { width: 50, height: 50 });
+    } else {
+      console.log("No valid mode!");
+    }
+    doc.end();
+    res.send({
+      code: 200,
+      message: "Ticket generated successfully"
+    });
+  });
 });
 
 module.exports = router;
