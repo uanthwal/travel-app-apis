@@ -77,9 +77,6 @@ router.post("/verify-otp", function(req, res, next) {
   TwoFactorAuth.findOne({ email: req_data.email }, function(err, mainTfData) {
     console.log("Data for user " + req_data.email + " in 2FA:", mainTfData);
     if (mainTfData) {
-      console.log(parseInt(mainTfData.otp));
-      console.log(parseInt(req_data.otp));
-      console.log(parseInt(mainTfData.otp) === parseInt(req_data.otp));
       if (parseInt(mainTfData.otp) === parseInt(req_data.otp)) {
         console.log(
           "OTP Matched, removing all OTP(s) for email: ",
@@ -112,10 +109,15 @@ router.post("/verify-otp", function(req, res, next) {
                   if (err) console.log(err);
                   else {
                     console.log("New Session Created: " + req_data.email);
-                    res.send({
-                      code: "200",
-                      message: "OTP verified successfully.",
-                      session_id: session_id
+                    User.findOne({email: req_data.email}, function(err, userdata) {
+                      let u_data = JSON.parse(JSON.stringify(userdata));
+                      delete u_data['password'];
+                      res.send({
+                        code: "200",
+                        message: "OTP verified successfully.",
+                        session_id: session_id,
+                        data: u_data
+                      });
                     });
                   }
                 });
@@ -126,10 +128,14 @@ router.post("/verify-otp", function(req, res, next) {
               if (err) console.log(err);
               else {
                 console.log("Session Created: " + req_data.email);
-                res.send({
-                  code: "200",
-                  message: "OTP verified successfully.",
-                  session_id: session_id
+                User.findOne({email: req_data.email}, function(err, userdata) {
+                  delete u_data['password'];
+                  res.send({
+                    code: "200",
+                    message: "OTP verified successfully.",
+                    session_id: session_id,
+                    data: u_data
+                  });
                 });
               }
             });
