@@ -7,7 +7,7 @@ var Booking_History = require("../models/booking_history");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const nodemailer = require("nodemailer");
-const path = require('path');
+const path = require("path");
 
 function generate_mode_number() {
   const upperCaseAlp = [
@@ -213,7 +213,8 @@ router.post("/api/book-ticket", function(req, res, next) {
     mode_fare: req.body.mode_fare,
     mode_number: req.body.mode_number,
     mode_id: req.body.mode_id,
-    date_of_travel: "" + req.body.date_of_travel
+    date_of_travel: "" + req.body.date_of_travel,
+    email_id: req.body.email_id
   });
   booking_info.save(function(err, data) {
     if (err) throw err;
@@ -256,6 +257,7 @@ router.post("/api/generate-ticket", function(req, res, next) {
     var mode_fare = data.mode_fare;
     var mode_company = data.mode_company;
     var mode_number = data.mode_number;
+    var email_id = data.email_id;
     var doc = new PDFDocument();
     doc.pipe(fs.createWriteStream(data._id + ".pdf"));
     doc.fontSize(14).text("Your Booking Is Confirmed", 200, 90);
@@ -290,36 +292,37 @@ router.post("/api/generate-ticket", function(req, res, next) {
     doc.end();
 
     const mailOptions = {
-      from: "",
-      to: "",
-      subject: "",
-      text: "",
+      from: "ticket@travelcanada.com",
+      to: email_id,
+      subject: "Your booking is confirmed",
+      text: "Please find attached ticket for your travel",
       html: "",
       attachments: [
         {
-          filename: booking_id+".pdf",
+          filename: booking_id + ".pdf",
           path: path.join(__dirname, "../" + booking_id + ".pdf"),
           contentType: "application/pdf"
         }
       ]
     };
     var req_data = req.body;
-  var transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: "travelcanadacc@gmail.com",
-      pass: "CloudGroup14"
-    }
-  });
-
-    transporter.sendMail(mailOptions, function(error, cb) {
-      if(error) console.log("Error while sending ticket");
-      console.log("Mail sender callback:" , cb);
+    var transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: "travelcanadacc@gmail.com",
+        pass: "CloudGroup14"
+      }
     });
 
-    res.send({
-      code: 200,
-      message: "Ticket generated successfully"
+    transporter.sendMail(mailOptions, function(error, cb) {
+      if (error) console.log("Error while sending ticket", error);
+      else {
+        console.log("Mail sender callback:", cb);
+        res.send({
+          code: 200,
+          message: "Ticket generated successfully"
+        });
+      }
     });
   });
 });
