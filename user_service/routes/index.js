@@ -12,6 +12,10 @@ const fetch = require("node-fetch");
 const uuidv1 = require("uuid/v1");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
+var crypto = require("crypto");
+var assert = require("assert");
+var algorithm = "aes256"; // or any other algorithm supported by OpenSSL
+var key = "CloudProject5409";
 
 router.get("/", function(req, res, next) {
   res.send({
@@ -47,7 +51,7 @@ router.post("/register", function(req, res, next) {
             unique_id: c,
             email: userInfo.email,
             username: userInfo.username,
-            password: userInfo.password,
+            password: get_encrypted_value(userInfo.password),
             mobile: userInfo.mobile
           });
 
@@ -109,9 +113,12 @@ router.post("/verify-otp", function(req, res, next) {
                   if (err) console.log(err);
                   else {
                     console.log("New Session Created: " + req_data.email);
-                    User.findOne({email: req_data.email}, function(err, userdata) {
+                    User.findOne({ email: req_data.email }, function(
+                      err,
+                      userdata
+                    ) {
                       let u_data = JSON.parse(JSON.stringify(userdata));
-                      delete u_data['password'];
+                      delete u_data["password"];
                       res.send({
                         code: "200",
                         message: "OTP verified successfully.",
@@ -128,8 +135,11 @@ router.post("/verify-otp", function(req, res, next) {
               if (err) console.log(err);
               else {
                 console.log("Session Created: " + req_data.email);
-                User.findOne({email: req_data.email}, function(err, userdata) {
-                  delete u_data['password'];
+                User.findOne({ email: req_data.email }, function(
+                  err,
+                  userdata
+                ) {
+                  delete u_data["password"];
                   res.send({
                     code: "200",
                     message: "OTP verified successfully.",
@@ -231,7 +241,7 @@ router.post("/login", function(req, res, next) {
   console.log(req.body.password);
   User.findOne({ email: req.body.email }, function(err, data) {
     if (data) {
-      if (data.password == req.body.password) {
+      if (data.password == get_encrypted_value(req.body.password)) {
         var req_object = {
           email: req.body.email,
           otp: Math.floor(100000 + Math.random() * 900000)
@@ -310,5 +320,17 @@ router.post("/api/get-user-info-by-session", function(req, res, next) {
     }
   });
 });
+
+function get_encrypted_value(pass) {
+  var cipher = crypto.createCipher(algorithm, pass);
+  var encrypted_pass = cipher.update(pass, "utf8", "hex") + cipher.final("hex");
+  return encrypted_pass;
+}
+
+function get_decrypted_value(pass) {
+  var decipher = crypto.createDecipher(algorithm, key);
+  var decrypted =
+    decipher.update(encrypted, "hex", "utf8") + decipher.final("utf8");
+}
 
 module.exports = router;
