@@ -216,6 +216,7 @@ router.post("/api/book-ticket", function(req, res, next) {
     date_of_travel: "" + req.body.date_of_travel,
     email_id: req.body.email_id
   });
+  console.log("Booking request: ", booking_info);
   booking_info.save(function(err, data) {
     if (err) throw err;
     else {
