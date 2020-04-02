@@ -1,17 +1,13 @@
 var express = require("express");
 var router = express.Router();
 var User = require("../models/user");
-var TwoFactorAuth = require("../models/twofactor");
-var UserSession = require("../models/usersession");
-var SearchHit = require("../models/search");
 var Places = require("../models/places");
 var Provinces = require("../models/provinces");
 var Booking_History = require("../models/booking_history");
-var nodemailer = require("nodemailer");
-const fetch = require("node-fetch");
-const uuidv1 = require("uuid/v1");
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
+const nodemailer = require("nodemailer");
+const path = require('path');
 
 function generate_mode_number() {
   const upperCaseAlp = [
@@ -262,16 +258,14 @@ router.post("/api/generate-ticket", function(req, res, next) {
     var mode_number = data.mode_number;
     var doc = new PDFDocument();
     doc.pipe(fs.createWriteStream(data._id + ".pdf"));
+    doc.fontSize(14).text("Your Booking Is Confirmed", 200, 90);
     doc
-      .fontSize(14)
-      .text("Your Booking Is Confirmed", 200, 90);
-      doc
-      .text("Your Booking Reference Number is: " + booking_id, 130, 120).font('Helvetica-Bold');
-
+      .text("Your Booking Reference Number is: " + booking_id, 130, 120)
+      .font("Helvetica-Bold");
 
     doc
       .fontSize(9)
-      .font('Helvetica-Bold')
+      .font("Helvetica-Bold")
       .text("Passenger Name: " + username, 220, 240)
       .text("Source: " + src, 220, 260)
       .text("Destination: " + dest, 220, 280)
@@ -281,7 +275,7 @@ router.post("/api/generate-ticket", function(req, res, next) {
 
     doc
       .fontSize(9)
-      .font('Helvetica-Bold')
+      .font("Helvetica-Bold")
       .text(mode_company, 155, 295)
       .text(mode_number, 150, 305);
 
@@ -294,6 +288,35 @@ router.post("/api/generate-ticket", function(req, res, next) {
       console.log("No valid mode!");
     }
     doc.end();
+
+    const mailOptions = {
+      from: "",
+      to: "",
+      subject: "",
+      text: "",
+      html: "",
+      attachments: [
+        {
+          filename: booking_id+".pdf",
+          path: path.join(__dirname, "../" + booking_id + ".pdf"),
+          contentType: "application/pdf"
+        }
+      ]
+    };
+    var req_data = req.body;
+  var transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "travelcanadacc@gmail.com",
+      pass: "CloudGroup14"
+    }
+  });
+
+    transporter.sendMail(mailOptions, function(error, cb) {
+      if(error) console.log("Error while sending ticket");
+      console.log("Mail sender callback:" , cb);
+    });
+
     res.send({
       code: 200,
       message: "Ticket generated successfully"

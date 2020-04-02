@@ -87,14 +87,16 @@ router.post("/get-hotspots", function(req, res, next) {
             console.log("err: ", err);
             return null;
           } else {
-            console.log(data);
-            res_data.push(data);
-            if (i == 5) {
-              res.send({
-                code: 200,
-                data: res_data,
-                message: "Trending places"
-              });
+            if (null != data) {
+              console.log("data: ", data);
+              res_data.push(data);
+              if (i == 5) {
+                res.send({
+                  code: 200,
+                  data: res_data,
+                  message: "Trending places"
+                });
+              }
             }
           }
         });
