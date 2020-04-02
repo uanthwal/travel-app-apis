@@ -11,7 +11,7 @@ var Schema = mongoose.Schema;
   mode_number: String,
   mode_id: String,
   date_of_travel: String,
-  email: String
+  email_id: String
 })),
   (Booking_History = mongoose.model("booking_history", booking_history));
 
